@@ -358,7 +358,7 @@
     <details class="help" style="margin-top:14px;">
       <summary>Where do these numbers come from?</summary>
       <p>Rock, Coal, Gold and Diamond claims earn a base monthly rent, and every level above 1 adds a flat +1% of that base (capped at level 100, which is 1.99× base). Enter the monthly income your claim is <em>actually</em> earning right now — the calculator works backward from that to figure out the per-level value, so it stays accurate even if your claim's base rent isn't exactly a community average. New claims are pre-filled with rough community-sourced starting rents you should overwrite once you see your own numbers.</p>
-      <p>The <strong>+ / − buttons</strong> next to Level are for "I just upgraded this in-game" — they raise the level and project the new income for you, using the base rate figured out above. If you're instead correcting a claim's level and income to match what the game shows right now (not stepping it up one at a time), type both fields directly — typing a level doesn't touch income, so you stay in control of both.</p>
+      <p>Level and income are linked: changing the level — whether you type a new number or use the <strong>+ / −</strong> buttons — always re-projects income from the claim's base rate, so the two never drift apart. If you're correcting a claim to match exactly what the game shows right now, set the level first, then type the income last so your real number is what sticks.</p>
     </details>
   </section>
 
@@ -993,7 +993,15 @@
   function updateRowDynamic(row, land){
     var count = Number(land.count) || 1;
 
-    var incomeField = row.querySelector(".f-income").closest(".field");
+    // Keep the income box's displayed number in sync when income changed as a
+    // side effect of editing the level — unless it's the field currently being
+    // typed into, so we never fight the person's own keystrokes there.
+    var incomeInput = row.querySelector(".f-income");
+    if (document.activeElement !== incomeInput){
+      incomeInput.value = land.income;
+    }
+
+    var incomeField = incomeInput.closest(".field");
     var incomeSub = incomeField.querySelector(".subnote");
     if (count > 1){
       var incomeText = "= " + fmtMoneyRaw(groupIncome(land)) + "/mo total";
@@ -1023,7 +1031,14 @@
     var land = state.lands.find(function(l){ return l.id === id; });
     if (!land) return;
     if (e.target.classList.contains("f-label")) land.label = e.target.value;
-    else if (e.target.classList.contains("f-level")) land.level = Math.max(1, Math.min(LEVEL_CAP, Number(e.target.value) || 1));
+    else if (e.target.classList.contains("f-level")){
+      // Typing a level directly now behaves the same as the +/- buttons: income
+      // is re-projected from the claim's current base rate so the two fields
+      // never drift apart, however the level got changed.
+      var typedLevel = Math.max(1, Math.min(LEVEL_CAP, Number(e.target.value) || 1));
+      land.income = incomeAtLevel(land, typedLevel);
+      land.level = typedLevel;
+    }
     else if (e.target.classList.contains("f-count")) land.count = Math.max(1, Math.round(Number(e.target.value) || 1));
     else if (e.target.classList.contains("f-income")) land.income = Math.max(0, Number(e.target.value) || 0);
     else return;
