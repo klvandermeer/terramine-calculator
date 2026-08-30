@@ -151,12 +151,17 @@
   .btn:disabled{ opacity: .6; cursor: default; }
   .btn:focus-visible, input:focus-visible, select:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
 
-  .land-list{ display: flex; flex-direction: column; gap: 10px; }
+  .land-list{ display: flex; flex-direction: column; gap: 22px; }
+  .type-group-head{ display:flex; align-items:baseline; gap: 8px; padding: 0 2px; }
+  .type-group-head .dot{ width:10px; height:10px; }
+  .type-group-name{ font-family: 'Zilla Slab', Georgia, serif; font-weight: 700; font-size: 15px; }
+  .type-group-stats{ margin-left: auto; font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+  .type-group-rows{ display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
   .land-row{
     display: grid;
-    grid-template-columns: 3px 1.15fr .8fr .65fr .55fr .95fr auto auto;
+    grid-template-columns: 3px 1.05fr .75fr minmax(94px,.7fr) minmax(56px,.5fr) .9fr auto auto;
     gap: 12px;
-    align-items: center;
+    align-items: start;
     padding: 12px 14px;
     background: var(--surface-2);
     border-radius: 10px;
@@ -170,14 +175,14 @@
   }
   .field input.num-input{ font-family: 'IBM Plex Mono', monospace; }
   .field .subnote{ font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-  .level-stepper{ display:flex; align-items:center; gap: 4px; }
-  .level-stepper input{ text-align:center; }
-  .level-stepper button{ width: 26px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor:pointer; font-weight:700; color: var(--text); }
+  .level-stepper{ display:flex; align-items:center; gap: 3px; }
+  .level-stepper input{ text-align:center; width: 38px; flex: 0 0 38px; min-width: 0; padding-left: 2px; padding-right: 2px; }
+  .level-stepper button{ width: 22px; height: 28px; flex: 0 0 22px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor:pointer; font-weight:700; color: var(--text); }
   .gain-cell{ text-align: right; font-size: 13px; }
   .gain-cell .num{ font-weight: 600; color: var(--good); font-size: 14px; }
   .gain-cell .stat-label{ font-size: 10px; }
   .gain-cell .subnote{ font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .row-actions{ display:flex; align-items:center; gap: 2px; }
+  .row-actions{ display:flex; align-items:center; gap: 2px; align-self: center; }
   .remove-btn, .dup-btn{ background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; }
   .remove-btn:hover{ color: var(--warn); background: var(--warn-bg); }
   .dup-btn{ font-size: 15px; }
@@ -773,56 +778,81 @@
     }).join("");
   }
 
+  function renderLandRow(land){
+    var t = TYPES[land.type];
+    var count = Number(land.count) || 1;
+    var groupGain = groupGainPerLevel(land);
+    return (
+      '<div class="land-row" data-id="' + land.id + '">' +
+        '<div class="type-bar" style="background:' + t.color + '"></div>' +
+        '<div class="field">' +
+          '<label>Label</label>' +
+          '<input type="text" class="f-label" value="' + esc(land.label) + '">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Type</label>' +
+          '<select class="f-type">' +
+            TYPE_ORDER.map(function(k){
+              return '<option value="' + k + '"' + (k === land.type ? " selected" : "") + '>' + TYPES[k].name + '</option>';
+            }).join("") +
+          '</select>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Level</label>' +
+          '<div class="level-stepper">' +
+            '<button type="button" class="lvl-down" aria-label="Decrease level">–</button>' +
+            '<input type="number" class="f-level num-input" min="1" max="100" value="' + land.level + '">' +
+            '<button type="button" class="lvl-up" aria-label="Increase level">+</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Count</label>' +
+          '<input type="number" class="f-count num-input" min="1" step="1" value="' + count + '">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Income / claim ($)</label>' +
+          '<input type="number" class="f-income num-input" step="0.000001" min="0" value="' + land.income + '">' +
+          (count > 1 ? '<div class="subnote">= ' + fmtMoneyRaw(groupIncome(land)) + '/mo total</div>' : '') +
+        '</div>' +
+        '<div class="gain-cell">' +
+          '<div class="stat-label">Next level' + (count > 1 ? ' (×' + count + ')' : '') + '</div>' +
+          '<div class="num">+' + fmtMoney(groupGain) + '</div>' +
+          (count > 1 ? '<div class="subnote">+' + fmtMoney(perLevelGain(land)) + ' per claim</div>' : '') +
+        '</div>' +
+        '<div class="row-actions">' +
+          '<button type="button" class="dup-btn" aria-label="Duplicate claim" title="Duplicate claim">⧉</button>' +
+          '<button type="button" class="remove-btn" aria-label="Remove claim" title="Remove claim">✕</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  // Claims are grouped by type (Rock/Coal/Gold/Diamond, in that fixed order)
+  // rather than shown in whatever order they were added, with a small header
+  // over each group giving that type's claim count and total income.
   function renderLands(){
     var list = document.getElementById("land-list");
     if (!state.lands.length){
       list.innerHTML = '<div class="empty-state"><p>No claims yet.</p><p>Add your first plot of land to start tracking its income.</p></div>';
       return;
     }
-    list.innerHTML = state.lands.map(function(land){
-      var t = TYPES[land.type];
-      var count = Number(land.count) || 1;
-      var groupGain = groupGainPerLevel(land);
+    var groups = TYPE_ORDER.map(function(key){
+      return { key: key, lands: state.lands.filter(function(l){ return l.type === key; }) };
+    }).filter(function(g){ return g.lands.length; });
+
+    list.innerHTML = groups.map(function(g){
+      var t = TYPES[g.key];
+      var claimCount = g.lands.reduce(function(sum, l){ return sum + (Number(l.count) || 1); }, 0);
+      var groupTotal = g.lands.reduce(function(sum, l){ return sum + groupIncome(l); }, 0);
       return (
-        '<div class="land-row" data-id="' + land.id + '">' +
-          '<div class="type-bar" style="background:' + t.color + '"></div>' +
-          '<div class="field">' +
-            '<label>Label</label>' +
-            '<input type="text" class="f-label" value="' + esc(land.label) + '">' +
+        '<div class="type-group">' +
+          '<div class="type-group-head">' +
+            '<span class="dot" style="background:' + t.color + '"></span>' +
+            '<span class="type-group-name">' + t.name + '</span>' +
+            '<span class="type-group-stats">' + claimCount + (claimCount === 1 ? " claim" : " claims") + " · " + fmtMoney(groupTotal) + " " + periodLabel() + '</span>' +
           '</div>' +
-          '<div class="field">' +
-            '<label>Type</label>' +
-            '<select class="f-type">' +
-              TYPE_ORDER.map(function(k){
-                return '<option value="' + k + '"' + (k === land.type ? " selected" : "") + '>' + TYPES[k].name + '</option>';
-              }).join("") +
-            '</select>' +
-          '</div>' +
-          '<div class="field">' +
-            '<label>Level</label>' +
-            '<div class="level-stepper">' +
-              '<button type="button" class="lvl-down" aria-label="Decrease level">–</button>' +
-              '<input type="number" class="f-level num-input" min="1" max="100" value="' + land.level + '">' +
-              '<button type="button" class="lvl-up" aria-label="Increase level">+</button>' +
-            '</div>' +
-          '</div>' +
-          '<div class="field">' +
-            '<label>Count</label>' +
-            '<input type="number" class="f-count num-input" min="1" step="1" value="' + count + '">' +
-          '</div>' +
-          '<div class="field">' +
-            '<label>Income / claim ($)</label>' +
-            '<input type="number" class="f-income num-input" step="0.000001" min="0" value="' + land.income + '">' +
-            (count > 1 ? '<div class="subnote">= ' + fmtMoneyRaw(groupIncome(land)) + '/mo total</div>' : '') +
-          '</div>' +
-          '<div class="gain-cell">' +
-            '<div class="stat-label">Next level' + (count > 1 ? ' (×' + count + ')' : '') + '</div>' +
-            '<div class="num">+' + fmtMoney(groupGain) + '</div>' +
-            (count > 1 ? '<div class="subnote">+' + fmtMoney(perLevelGain(land)) + ' per claim</div>' : '') +
-          '</div>' +
-          '<div class="row-actions">' +
-            '<button type="button" class="dup-btn" aria-label="Duplicate claim" title="Duplicate claim">⧉</button>' +
-            '<button type="button" class="remove-btn" aria-label="Remove claim" title="Remove claim">✕</button>' +
+          '<div class="type-group-rows">' +
+            g.lands.map(renderLandRow).join("") +
           '</div>' +
         '</div>'
       );
