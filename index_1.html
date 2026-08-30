@@ -1,0 +1,1242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TerraMine Ledger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg: #eef0ea;
+    --surface: #ffffff;
+    --surface-2: #e3e6dd;
+    --text: #201e19;
+    --text-muted: #625d51;
+    --border: #d3d3c6;
+    --accent: #a9682a;
+    --accent-ink: #fff8ef;
+    --rock: #7d7568;
+    --coal: #47566e;
+    --gold: #b3822f;
+    --diamond: #2f9e91;
+    --good: #3f8a4c;
+    --good-bg: #e3f0e2;
+    --warn: #b25a2e;
+    --warn-bg: #f5e6da;
+    --shadow: 0 1px 2px rgba(32,30,25,.06), 0 6px 20px rgba(32,30,25,.05);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #1b1916;
+      --surface: #242220;
+      --surface-2: #2f2c27;
+      --text: #f1ece1;
+      --text-muted: #a89e8c;
+      --border: #3c372f;
+      --accent: #dd9c4f;
+      --accent-ink: #241a0c;
+      --rock: #a49b8a;
+      --coal: #8ba0c4;
+      --gold: #e5bc6b;
+      --diamond: #5fd0c3;
+      --good: #74c17e;
+      --good-bg: #223326;
+      --warn: #e39468;
+      --warn-bg: #3a2a20;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #1b1916;
+    --surface: #242220;
+    --surface-2: #2f2c27;
+    --text: #f1ece1;
+    --text-muted: #a89e8c;
+    --border: #3c372f;
+    --accent: #dd9c4f;
+    --accent-ink: #241a0c;
+    --rock: #a49b8a;
+    --coal: #8ba0c4;
+    --gold: #e5bc6b;
+    --diamond: #5fd0c3;
+    --good: #74c17e;
+    --good-bg: #223326;
+    --warn: #e39468;
+    --warn-bg: #3a2a20;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ background: var(--bg); }
+  body{
+    color: var(--text);
+    font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 32px 20px 80px;
+    line-height: 1.5;
+  }
+  .wrap{ max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  [hidden]{ display: none !important; }
+
+  h1,h2,h3{ font-family: 'Zilla Slab', Georgia, serif; font-weight: 700; margin: 0; text-wrap: balance; }
+  .num{ font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  /* ---------- auth screen ---------- */
+  .auth-wrap{ min-height: 80vh; display: flex; align-items: center; justify-content: center; }
+  .auth-card{ max-width: 380px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 34px 28px; box-shadow: var(--shadow); }
+  .auth-card h1{ font-size: 25px; text-align: center; }
+  .auth-card .tagline{ text-align: center; color: var(--text-muted); font-size: 14px; margin: 6px 0 22px; }
+  .auth-tabs{ display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+  .auth-tabs button{ flex: 1; padding: 10px; border: none; background: var(--surface-2); color: var(--text-muted); font: inherit; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .auth-tabs button.active{ background: var(--accent); color: var(--accent-ink); }
+  #auth-form .field{ margin-bottom: 14px; }
+  #auth-form label{ display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+  #auth-form input{ width: 100%; font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); }
+  #auth-form input:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
+  .auth-error{ margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }
+  .auth-notice{ margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--good-bg); color: var(--good); font-size: 13px; }
+  .auth-foot{ text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 26px; }
+
+  .user-bar{ display: flex; justify-content: flex-end; align-items: center; gap: 12px; font-size: 13px; color: var(--text-muted); }
+
+  header.hero{
+    background: linear-gradient(155deg, var(--surface) 0%, var(--surface-2) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    box-shadow: var(--shadow);
+  }
+  .hero-top{ display:flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .hero-top h1{ font-size: 28px; letter-spacing: -.01em; }
+  .tagline{ color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+  .period-toggle{ display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; background: var(--surface); flex-shrink:0; }
+  .period-toggle button{
+    border: none; background: transparent; color: var(--text-muted); font: inherit; font-size: 13px; font-weight: 600;
+    padding: 7px 14px; cursor: pointer;
+  }
+  .period-toggle button.active{ background: var(--accent); color: var(--accent-ink); }
+
+  .hero-stats{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 18px; margin-top: 22px; }
+  .stat-label{ font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); font-weight: 600; }
+  .stat-value{ font-size: 26px; font-weight: 600; margin-top: 4px; }
+  .stat-sub{ font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .goal-strip{ margin-top: 22px; }
+  .goal-row{ display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; gap: 10px; flex-wrap: wrap;}
+  .goal-row .num{ color: var(--text); font-weight: 600; }
+  .bar-track{ height: 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+  .bar-fill{ height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 999px 0 0 999px; transition: width .3s ease; }
+
+  section{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: var(--shadow);
+  }
+  section > .section-head{ display:flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;}
+  section h2{ font-size: 19px; }
+  .section-note{ font-size: 13px; color: var(--text-muted); }
+
+  .btn{
+    font: inherit; font-weight: 600; font-size: 13px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text); padding: 8px 14px; cursor: pointer;
+  }
+  .btn:hover{ filter: brightness(0.97); }
+  .btn.primary{ background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .btn.ghost{ background: transparent; }
+  .btn.small{ padding: 5px 10px; font-size: 12px; }
+  .btn:disabled{ opacity: .6; cursor: default; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible{ outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .land-list{ display: flex; flex-direction: column; gap: 10px; }
+  .land-row{
+    display: grid;
+    grid-template-columns: 3px 1.3fr .9fr .8fr 1.1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .type-bar{ align-self: stretch; border-radius: 3px; }
+  .field label{ display:block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; font-weight: 600;}
+  .field input, .field select{
+    width: 100%; font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  }
+  .field input.num-input{ font-family: 'IBM Plex Mono', monospace; }
+  .level-stepper{ display:flex; align-items:center; gap: 4px; }
+  .level-stepper input{ text-align:center; }
+  .level-stepper button{ width: 26px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor:pointer; font-weight:700; color: var(--text); }
+  .gain-cell{ text-align: right; font-size: 13px; }
+  .gain-cell .num{ font-weight: 600; color: var(--good); font-size: 14px; }
+  .gain-cell .stat-label{ font-size: 10px; }
+  .row-actions{ display:flex; align-items:center; gap: 2px; }
+  .remove-btn, .dup-btn{ background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; }
+  .remove-btn:hover{ color: var(--warn); background: var(--warn-bg); }
+  .dup-btn{ font-size: 15px; }
+  .dup-btn:hover{ color: var(--accent); background: var(--surface); }
+
+  .empty-state{ text-align:center; padding: 30px 10px; color: var(--text-muted); }
+  .empty-state p{ margin: 6px 0; }
+
+  .type-legend{ display:flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); margin-top: 4px;}
+  .type-legend span{ display:inline-flex; align-items:center; gap: 6px;}
+  .dot{ width:9px; height:9px; border-radius: 50%; display:inline-block; }
+
+  .insight-list{ display:flex; flex-direction:column; gap: 8px; }
+  .insight-row{ display:flex; justify-content: space-between; align-items:center; padding: 10px 12px; background: var(--surface-2); border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
+  .insight-row .rank{ font-family:'IBM Plex Mono',monospace; color: var(--text-muted); width: 22px; flex-shrink:0; }
+  .insight-row .name{ flex: 1; font-weight: 600; }
+  .insight-row .gain{ font-weight: 600; color: var(--good); }
+
+  .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 640px){
+    .grid-2{ grid-template-columns: 1fr; }
+    .land-row{ display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 14px; }
+    .land-row .type-bar{ width: 100%; height: 4px; border-radius: 3px; align-self: auto; }
+    .land-row .gain-cell{ text-align: left; display:flex; align-items:center; justify-content: space-between; }
+    .land-row .row-actions{ align-self: flex-end; margin-top: -6px; }
+  }
+
+  .control-row{ display:flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .control{ flex: 1; min-width: 130px; }
+  .control label{ display:block; font-size: 12px; color: var(--text-muted); font-weight:600; margin-bottom: 4px; }
+  .control input{ width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-family:'IBM Plex Mono',monospace; }
+
+  .compare-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; }
+  .compare-tile{ background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .compare-tile .stat-value{ font-size: 20px; }
+  .compare-tile.highlight{ border-color: var(--accent); background: linear-gradient(155deg, var(--surface-2), var(--good-bg)); }
+
+  footer{ text-align:center; font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; flex-direction: column; gap: 6px; }
+  #save-status{ display:inline-flex; align-items:center; gap: 6px; justify-content: center; }
+  #save-status .save-dot{ width:6px; height:6px; border-radius:50%; background: var(--text-muted); }
+  #save-status.saving .save-dot{ background: var(--gold); }
+  #save-status.saved .save-dot{ background: var(--good); }
+  #save-status.error .save-dot, #save-status.local .save-dot{ background: var(--warn); }
+
+  details.help{ font-size: 13px; color: var(--text-muted); }
+  details.help summary{ cursor: pointer; font-weight: 600; color: var(--text); }
+  details.help p{ margin: 8px 0 0; }
+
+  .goal-input-row{ display:flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+
+  .textarea-field{ width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); resize: vertical; }
+  .suggestion-foot{ display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 12px; }
+
+  .ad-slot{ text-align: center; }
+  .ad-label{ font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: 6px; }
+  .ad-disclosure{ font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  .ad-disclosure a, footer a, .auth-foot a{ color: var(--text-muted); }
+
+  .site-nav{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px 20px; max-width:900px; margin:0 auto 24px; padding: 2px 20px; }
+  .site-nav-brand{ font-family:'Zilla Slab', Georgia, serif; font-weight:700; font-size:16px; color:var(--text); text-decoration:none; }
+  .site-nav-links{ display:flex; gap:18px; flex-wrap:wrap; }
+  .site-nav-links a{ font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; padding:4px 1px; border-bottom:2px solid transparent; }
+  .site-nav-links a:hover{ color:var(--text); }
+  .site-nav-links a.active{ color:var(--accent); border-bottom-color:var(--accent); }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="site-nav-brand">TerraMine Ledger</a>
+  <div class="site-nav-links">
+    <a href="index.html" class="active">Ledger</a>
+    <a href="about.html">About</a>
+    <a href="advice.html">Newbie tips</a>
+    <a href="updates.html">Updates</a>
+    <a href="journey.html">My journey</a>
+  </div>
+</nav>
+
+<!-- ---------- signed-out: auth screen ---------- -->
+<div class="auth-wrap" id="auth-screen">
+  <div class="auth-card">
+    <h1>TerraMine Ledger</h1>
+    <div class="tagline">Track your claims, upgrades, boosts, and goals — synced to your account.</div>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-mode="signin">Sign in</button>
+      <button type="button" class="auth-tab" data-mode="signup">Create account</button>
+    </div>
+    <form id="auth-form">
+      <div class="field">
+        <label for="auth-email">Email</label>
+        <input type="email" id="auth-email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="auth-password">Password</label>
+        <input type="password" id="auth-password" required autocomplete="current-password" minlength="6">
+      </div>
+      <button type="submit" class="btn primary" id="auth-submit" style="width:100%;">Sign in</button>
+    </form>
+    <button type="button" class="btn ghost" id="auth-forgot" style="width:100%; margin-top:8px;">Forgot password?</button>
+    <div id="auth-error" class="auth-error" hidden></div>
+    <div id="auth-notice" class="auth-notice" hidden></div>
+    <div class="auth-foot">Unofficial, fan-made tool for TerraMine players — not affiliated with the game's developer. Your email is used only to sign you in; only you can see your claims. <a href="privacy.html">Privacy notice</a>.</div>
+  </div>
+</div>
+
+<!-- ---------- signed-in but not yet verified ---------- -->
+<div class="auth-wrap" id="verify-screen" hidden>
+  <div class="auth-card">
+    <h1>Verify your email</h1>
+    <div class="tagline">We sent a verification link to <strong id="verify-email"></strong>. Click it, then come back here.</div>
+    <button type="button" class="btn primary" id="verify-continue" style="width:100%;">I've verified — continue</button>
+    <button type="button" class="btn ghost" id="verify-resend" style="width:100%; margin-top:8px;">Resend verification email</button>
+    <button type="button" class="btn ghost" id="verify-signout" style="width:100%; margin-top:8px;">Sign out</button>
+    <div id="verify-error" class="auth-error" hidden></div>
+    <div id="verify-notice" class="auth-notice" hidden></div>
+  </div>
+</div>
+
+<!-- ---------- signed-in: the app ---------- -->
+<div class="wrap" id="app-wrap" hidden>
+
+  <div class="user-bar">
+    <span id="user-email"></span>
+    <button type="button" class="btn small ghost" id="signout-btn">Sign out</button>
+  </div>
+
+  <header class="hero">
+    <div class="hero-top">
+      <div>
+        <h1>TerraMine Ledger</h1>
+        <div class="tagline">Your claims, your upgrades, your payout — tracked in one place.</div>
+      </div>
+      <div class="period-toggle" id="period-toggle">
+        <button data-period="day">Per day</button>
+        <button data-period="month">Per month</button>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <div class="stat-label">Unboosted income</div>
+        <div class="stat-value num" id="stat-unboosted">$0.00</div>
+        <div class="stat-sub" id="stat-unboosted-sub">&nbsp;</div>
+      </div>
+      <div>
+        <div class="stat-label">With your boost</div>
+        <div class="stat-value num" id="stat-boosted">$0.00</div>
+        <div class="stat-sub" id="stat-boosted-sub">&nbsp;</div>
+      </div>
+      <div>
+        <div class="stat-label">Claims held</div>
+        <div class="stat-value num" id="stat-count">0</div>
+        <div class="stat-sub" id="stat-count-sub">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="goal-strip">
+      <div class="goal-row">
+        <span>Progress to goal</span>
+        <span><span class="num" id="goal-progress-pct">0%</span> · <span class="num" id="goal-progress-detail">$0.00 of $0.00</span></span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="goal-bar" style="width:0%"></div></div>
+    </div>
+  </header>
+
+  <section id="lands-section">
+    <div class="section-head">
+      <div>
+        <h2>Your claims</h2>
+        <div class="section-note">One row per plot of land you own. Enter the level and current monthly income exactly as the game shows it.</div>
+      </div>
+      <button class="btn primary" id="add-land-btn">+ Add claim</button>
+    </div>
+    <div class="type-legend" id="type-legend"></div>
+    <div class="land-list" id="land-list" style="margin-top:14px;"></div>
+    <button class="btn primary" id="add-land-btn-bottom" style="margin-top:14px;">+ Add claim</button>
+    <details class="help" style="margin-top:14px;">
+      <summary>Where do these numbers come from?</summary>
+      <p>Rock, Coal, Gold and Diamond claims earn a base monthly rent, and every level above 1 adds a flat +1% of that base (capped at level 100, which is 1.99× base). Enter the monthly income your claim is <em>actually</em> earning right now — the calculator works backward from that to figure out the per-level value, so it stays accurate even if your claim's base rent isn't exactly a community average. New claims are pre-filled with rough community-sourced starting rents you should overwrite once you see your own numbers.</p>
+    </details>
+  </section>
+
+  <section id="insight-section">
+    <div class="section-head">
+      <div>
+        <h2>Best next upgrade</h2>
+        <div class="section-note">Ranked by how much monthly income one more level adds — right now, a level always adds the same $ amount to a given claim, so upgrading the same claim repeatedly stacks evenly.</div>
+      </div>
+    </div>
+    <div class="insight-list" id="insight-list"></div>
+  </section>
+
+  <div class="grid-2">
+    <section id="upgrade-section">
+      <div class="section-head"><h2>Upgrade simulator</h2></div>
+      <div class="control-row">
+        <div class="control">
+          <label for="sim-land">Claim</label>
+          <select id="sim-land"></select>
+        </div>
+        <div class="control">
+          <label for="sim-level">Simulate level</label>
+          <input type="number" id="sim-level" min="1" max="100" value="1">
+        </div>
+      </div>
+      <div class="compare-grid">
+        <div class="compare-tile">
+          <div class="stat-label">Now</div>
+          <div class="stat-value num" id="sim-now">$0.00</div>
+        </div>
+        <div class="compare-tile highlight">
+          <div class="stat-label">At simulated level</div>
+          <div class="stat-value num" id="sim-then">$0.00</div>
+        </div>
+        <div class="compare-tile">
+          <div class="stat-label">Gain</div>
+          <div class="stat-value num" id="sim-gain">+$0.00</div>
+        </div>
+      </div>
+      <div class="section-note" style="margin-top:14px;">Gain, at fixed intervals:</div>
+      <div class="compare-grid" style="margin-top:8px;">
+        <div class="compare-tile">
+          <div class="stat-label">Monthly increase</div>
+          <div class="stat-value num" id="sim-gain-monthly">+$0.00</div>
+        </div>
+        <div class="compare-tile">
+          <div class="stat-label">Yearly increase</div>
+          <div class="stat-value num" id="sim-gain-yearly">+$0.00</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="boost-section">
+      <div class="section-head"><h2>Boost calculator</h2></div>
+      <div class="control-row">
+        <div class="control">
+          <label for="boost-mult">Boost multiplier</label>
+          <input type="number" id="boost-mult" min="1" step="0.5" value="20">
+        </div>
+        <div class="control">
+          <label for="boost-hours">Hours boosted / day</label>
+          <input type="number" id="boost-hours" min="0" max="24" step="0.5" value="4">
+        </div>
+      </div>
+      <div class="compare-grid">
+        <div class="compare-tile">
+          <div class="stat-label">No boost</div>
+          <div class="stat-value num" id="boost-none">$0.00</div>
+        </div>
+        <div class="compare-tile highlight">
+          <div class="stat-label">Your average day</div>
+          <div class="stat-value num" id="boost-avg">$0.00</div>
+        </div>
+        <div class="compare-tile">
+          <div class="stat-label">Full-time boosted</div>
+          <div class="stat-value num" id="boost-full">$0.00</div>
+        </div>
+      </div>
+      <div class="section-note" id="boost-earned" style="margin-top:12px;">&nbsp;</div>
+    </section>
+  </div>
+
+  <section id="goal-section">
+    <div class="section-head">
+      <div>
+        <h2>Income goal</h2>
+        <div class="section-note">Set a target and see how close your claims get you — with and without boosting.</div>
+      </div>
+    </div>
+    <div class="goal-input-row">
+      <div class="control" style="max-width:220px;">
+        <label for="goal-input">Monthly income goal ($)</label>
+        <input type="number" id="goal-input" min="0" step="0.01" value="1">
+      </div>
+    </div>
+    <div class="compare-grid">
+      <div class="compare-tile">
+        <div class="stat-label">Remaining (unboosted)</div>
+        <div class="stat-value num" id="goal-remaining-unboosted">$0.00</div>
+      </div>
+      <div class="compare-tile highlight">
+        <div class="stat-label">Remaining (with boost)</div>
+        <div class="stat-value num" id="goal-remaining-boosted">$0.00</div>
+      </div>
+      <div class="compare-tile">
+        <div class="stat-label">Max if all claims hit lvl 100</div>
+        <div class="stat-value num" id="goal-max-potential">$0.00</div>
+      </div>
+    </div>
+    <div class="section-note" id="goal-verdict" style="margin-top:12px;">&nbsp;</div>
+  </section>
+
+  <section id="suggestion-section">
+    <div class="section-head">
+      <div>
+        <h2>Suggestion box</h2>
+        <div class="section-note">Bug, idea, or something you wish this tool did? Send it straight to me.</div>
+      </div>
+    </div>
+    <form id="suggestion-form">
+      <textarea id="suggestion-text" class="textarea-field" rows="4" maxlength="2000" placeholder="What's on your mind?"></textarea>
+      <div class="suggestion-foot">
+        <span class="section-note" id="suggestion-count">0 / 2000</span>
+        <button type="submit" class="btn primary" id="suggestion-submit">Send suggestion</button>
+      </div>
+    </form>
+    <div id="suggestion-status" class="section-note" style="margin-top:10px;">&nbsp;</div>
+  </section>
+
+  <div id="ad-slot" class="ad-slot" hidden>
+    <div class="ad-label">Advertisement</div>
+    <ins class="adsbygoogle" style="display:block" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <div class="ad-disclosure">Ads on this page are served by Google and may use cookies to personalize what you see. <a href="privacy.html">Privacy notice</a>.</div>
+  </div>
+
+  <footer>
+    <span id="save-status" class="local"><span class="save-dot"></span><span id="save-status-text">Not saved yet</span></span>
+    <span>Unofficial fan-made tool — not affiliated with TerraMine's developer. <a href="privacy.html">Privacy notice</a>.</span>
+  </footer>
+
+</div>
+
+<!-- ---------- Firebase ---------- -->
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore-compat.js"></script>
+<script>
+  // TODO — paste YOUR Firebase project's config here. Firebase console →
+  // Project settings → General → "Your apps" → the web app → SDK setup and
+  // configuration → Config. See SETUP.md for the full walkthrough.
+  var firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var db = firebase.firestore();
+</script>
+
+<!-- ---------- EmailJS (delivers the suggestion box to your inbox — no backend needed) ---------- -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  // TODO — paste YOUR EmailJS project's IDs here. See SETUP.md, "Suggestion
+  // box" section, for the full walkthrough (free account, no credit card).
+  var emailjsConfig = {
+    publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
+    serviceId: "YOUR_EMAILJS_SERVICE_ID",
+    templateId: "YOUR_EMAILJS_TEMPLATE_ID"
+  };
+  if (window.emailjs) emailjs.init({ publicKey: emailjsConfig.publicKey });
+</script>
+
+<!-- ---------- Google AdSense (optional — stays inert until configured below) ---------- -->
+<script>
+  // TODO — paste YOUR AdSense publisher ID and ad unit's slot ID here once
+  // your site is approved. See SETUP.md, "Add an ad" section. Left as
+  // placeholders, the ad slot stays hidden and nothing is loaded from Google.
+  var adsenseConfig = {
+    client: "ca-pub-XXXXXXXXXXXXXXXX",
+    slot: "YOUR_AD_SLOT_ID"
+  };
+</script>
+
+<script>
+(function(){
+  "use strict";
+
+  var TYPES = {
+    rock:    { name: "Rock",    color: "var(--rock)",    seed: 0.002851 },
+    coal:    { name: "Coal",    color: "var(--coal)",    seed: 0.004147 },
+    gold:    { name: "Gold",    color: "var(--gold)",    seed: 0.00507  },
+    diamond: { name: "Diamond", color: "var(--diamond)", seed: 0.011405 }
+  };
+  var TYPE_ORDER = ["rock","coal","gold","diamond"];
+  var LEVEL_CAP = 100;
+
+  function defaultState(){
+    return {
+      lands: [
+        { id: cryptoId(), label: "Claim 1", type: "rock", level: 1, income: TYPES.rock.seed }
+      ],
+      boost: { multiplier: 20, hoursPerDay: 4 },
+      goal: { monthly: 1 },
+      display: { period: "month" },
+      simLandId: null
+    };
+  }
+
+  function cryptoId(){
+    return "l" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  }
+
+  // If a label ends in a number ("Rock 1"), the duplicate continues the sequence
+  // ("Rock 2") — picking one past the highest number already used with that same
+  // prefix, so duplicating "Rock 1" twice gives "Rock 2" then "Rock 3", not two
+  // "Rock 2"s. Labels with no trailing number just get " copy" appended.
+  function nextDuplicateLabel(land, lands){
+    var m = /^(.*?)(\d+)\s*$/.exec(land.label);
+    if (!m) return land.label + " copy";
+    var prefix = m[1];
+    var maxNum = parseInt(m[2], 10);
+    lands.forEach(function(l){
+      var mm = /^(.*?)(\d+)\s*$/.exec(l.label);
+      if (mm && mm[1] === prefix){
+        var n = parseInt(mm[2], 10);
+        if (n > maxNum) maxNum = n;
+      }
+    });
+    return prefix + (maxNum + 1);
+  }
+
+  var state = defaultState();
+  var currentUser = null;
+  var unsubscribeSnapshot = null;
+  var lastWrittenJson = null;
+  var saveTimer = null;
+
+  // ---------- math ----------
+  function levelMultiplier(level){
+    var lvl = Math.max(1, Math.min(LEVEL_CAP, Math.round(level || 1)));
+    return 1 + 0.01 * (lvl - 1);
+  }
+  function baseRateFor(land){
+    var mult = levelMultiplier(land.level);
+    return (Number(land.income) || 0) / mult;
+  }
+  function incomeAtLevel(land, level){
+    return baseRateFor(land) * levelMultiplier(level);
+  }
+  function perLevelGain(land){
+    return baseRateFor(land) * 0.01;
+  }
+  function totalMonthlyIncome(lands){
+    return lands.reduce(function(sum, l){ return sum + (Number(l.income) || 0); }, 0);
+  }
+  function totalMaxPotential(lands){
+    return lands.reduce(function(sum, l){ return sum + incomeAtLevel(l, LEVEL_CAP); }, 0);
+  }
+  function boostedMonthly(monthlyBase, multiplier, hoursPerDay){
+    var frac = Math.max(0, Math.min(24, Number(hoursPerDay) || 0)) / 24;
+    var mult = Math.max(1, Number(multiplier) || 1);
+    return monthlyBase * ((1 - frac) + frac * mult);
+  }
+
+  // ---------- formatting ----------
+  function periodFactor(){ return state.display.period === "day" ? (1/30) : 1; }
+  function periodLabel(){ return state.display.period === "day" ? "/day" : "/mo"; }
+  function fmtMoneyRaw(v){
+    var abs = Math.abs(v);
+    var decimals = abs === 0 ? 2 : abs < 0.001 ? 6 : abs < 0.01 ? 5 : abs < 1 ? 4 : 2;
+    return "$" + v.toFixed(decimals);
+  }
+  function fmtMoneyRawSigned(v){
+    var s = fmtMoneyRaw(Math.abs(v));
+    return (v < 0 ? "-" : "+") + s;
+  }
+  function fmtMoney(monthlyValue){
+    return fmtMoneyRaw(monthlyValue * periodFactor());
+  }
+  function fmtMoneySigned(monthlyValue){
+    var s = fmtMoney(Math.abs(monthlyValue));
+    return (monthlyValue < 0 ? "-" : "+") + s;
+  }
+  function fmtPct(p){ return Math.max(0, Math.min(999, p)).toFixed(0) + "%"; }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  function normalizeState(data){
+    var s = defaultState();
+    if (data && Array.isArray(data.lands) && data.lands.length){
+      s.lands = data.lands.map(function(l){
+        return {
+          id: l.id || cryptoId(),
+          label: l.label || "Claim",
+          type: TYPES[l.type] ? l.type : "rock",
+          level: Math.max(1, Math.min(LEVEL_CAP, Number(l.level) || 1)),
+          income: Number(l.income) || 0
+        };
+      });
+    }
+    if (data && data.boost){
+      s.boost.multiplier = Number(data.boost.multiplier) || 20;
+      s.boost.hoursPerDay = Number(data.boost.hoursPerDay) || 0;
+    }
+    if (data && data.goal) s.goal.monthly = Number(data.goal.monthly) || 0;
+    if (data && data.display && (data.display.period === "day" || data.display.period === "month")) s.display.period = data.display.period;
+    if (data && data.simLandId) s.simLandId = data.simLandId;
+    return s;
+  }
+
+  // ---------- persistence (Firestore, per signed-in user) ----------
+  function userDoc(uid){ return db.collection("users").doc(uid); }
+
+  function subscribeUser(uid){
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    lastWrittenJson = null;
+    unsubscribeSnapshot = userDoc(uid).onSnapshot(function(snap){
+      var data = snap.exists ? snap.data() : null;
+      var json = data ? JSON.stringify(data) : null;
+      // Skip re-render for the echo of our own write (optimistic, then confirmed) —
+      // only redraw when the data actually changed (e.g. from another device/tab).
+      if (json !== null && json === lastWrittenJson) return;
+      state = normalizeState(data);
+      render();
+      setSaveStatus("saved", "Synced");
+    }, function(err){
+      console.error("Sync error", err);
+      setSaveStatus("error", "Sync error — check your connection");
+    });
+  }
+
+  var statusEl, statusTextEl;
+  function setSaveStatus(kind, text){
+    if (!statusEl) return;
+    statusEl.className = kind;
+    statusTextEl.textContent = text;
+  }
+  function scheduleSave(){
+    setSaveStatus("saving", "Saving…");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 900);
+  }
+  async function doSave(){
+    if (!currentUser) return;
+    var json = JSON.stringify(state);
+    lastWrittenJson = json;
+    try {
+      await userDoc(currentUser.uid).set(state);
+      setSaveStatus("saved", "Saved");
+    } catch(err){
+      console.error(err);
+      setSaveStatus("error", "Couldn't save — check your connection");
+    }
+  }
+
+  // ---------- rendering ----------
+  function render(){
+    renderHero();
+    renderLegend();
+    renderLands();
+    renderInsights();
+    renderSimulator();
+    renderBoost();
+    renderGoal();
+  }
+
+  function renderHero(){
+    var lands = state.lands;
+    var unboosted = totalMonthlyIncome(lands);
+    var boosted = boostedMonthly(unboosted, state.boost.multiplier, state.boost.hoursPerDay);
+    document.getElementById("stat-unboosted").textContent = fmtMoney(unboosted) + " " + periodLabel();
+    document.getElementById("stat-boosted").textContent = fmtMoney(boosted) + " " + periodLabel();
+    document.getElementById("stat-boosted-sub").textContent = state.boost.multiplier + "× for " + state.boost.hoursPerDay + " hr/day";
+    document.getElementById("stat-count").textContent = String(lands.length);
+    document.getElementById("stat-count-sub").textContent = lands.length === 1 ? "1 claim" : lands.length + " claims";
+
+    var goal = Math.max(0, Number(state.goal.monthly) || 0);
+    var pct = goal > 0 ? (boosted / goal) * 100 : 0;
+    document.getElementById("goal-bar").style.width = Math.max(0, Math.min(100, pct)) + "%";
+    document.getElementById("goal-progress-pct").textContent = fmtPct(pct);
+    document.getElementById("goal-progress-detail").textContent = fmtMoney(boosted) + " of " + fmtMoney(goal) + " " + periodLabel();
+
+    document.querySelectorAll("#period-toggle button").forEach(function(btn){
+      btn.classList.toggle("active", btn.dataset.period === state.display.period);
+    });
+  }
+
+  function renderLegend(){
+    var el = document.getElementById("type-legend");
+    el.innerHTML = TYPE_ORDER.map(function(key){
+      var t = TYPES[key];
+      return '<span><span class="dot" style="background:' + t.color + '"></span>' + t.name + '</span>';
+    }).join("");
+  }
+
+  function renderLands(){
+    var list = document.getElementById("land-list");
+    if (!state.lands.length){
+      list.innerHTML = '<div class="empty-state"><p>No claims yet.</p><p>Add your first plot of land to start tracking its income.</p></div>';
+      return;
+    }
+    list.innerHTML = state.lands.map(function(land){
+      var t = TYPES[land.type];
+      var gain = perLevelGain(land);
+      return (
+        '<div class="land-row" data-id="' + land.id + '">' +
+          '<div class="type-bar" style="background:' + t.color + '"></div>' +
+          '<div class="field">' +
+            '<label>Label</label>' +
+            '<input type="text" class="f-label" value="' + esc(land.label) + '">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Type</label>' +
+            '<select class="f-type">' +
+              TYPE_ORDER.map(function(k){
+                return '<option value="' + k + '"' + (k === land.type ? " selected" : "") + '>' + TYPES[k].name + '</option>';
+              }).join("") +
+            '</select>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Level</label>' +
+            '<div class="level-stepper">' +
+              '<button type="button" class="lvl-down" aria-label="Decrease level">–</button>' +
+              '<input type="number" class="f-level num-input" min="1" max="100" value="' + land.level + '">' +
+              '<button type="button" class="lvl-up" aria-label="Increase level">+</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Monthly income ($)</label>' +
+            '<input type="number" class="f-income num-input" step="0.000001" min="0" value="' + land.income + '">' +
+          '</div>' +
+          '<div class="gain-cell">' +
+            '<div class="stat-label">Next level</div>' +
+            '<div class="num">+' + fmtMoney(gain) + '</div>' +
+          '</div>' +
+          '<div class="row-actions">' +
+            '<button type="button" class="dup-btn" aria-label="Duplicate claim" title="Duplicate claim">⧉</button>' +
+            '<button type="button" class="remove-btn" aria-label="Remove claim" title="Remove claim">✕</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  function renderInsights(){
+    var el = document.getElementById("insight-list");
+    if (!state.lands.length){
+      el.innerHTML = '<div class="section-note">Add a claim to see which upgrade pays off most.</div>';
+      return;
+    }
+    var ranked = state.lands.slice().filter(function(l){ return l.level < LEVEL_CAP; })
+      .map(function(l){ return { land: l, gain: perLevelGain(l) }; })
+      .sort(function(a,b){ return b.gain - a.gain; })
+      .slice(0, 5);
+    if (!ranked.length){
+      el.innerHTML = '<div class="section-note">Every claim is already at level 100 — nothing left to upgrade.</div>';
+      return;
+    }
+    el.innerHTML = ranked.map(function(r, i){
+      var t = TYPES[r.land.type];
+      return (
+        '<div class="insight-row">' +
+          '<span class="rank">#' + (i+1) + '</span>' +
+          '<span class="dot" style="background:' + t.color + '"></span>' +
+          '<span class="name">' + esc(r.land.label) + ' <span style="color:var(--text-muted); font-weight:400;">(' + t.name + ', lvl ' + r.land.level + ')</span></span>' +
+          '<span class="gain">+' + fmtMoney(r.gain) + ' ' + periodLabel() + ' per level</span>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  function renderSimulator(){
+    var select = document.getElementById("sim-land");
+    if (!state.lands.length){
+      select.innerHTML = '<option value="">No claims yet</option>';
+      document.getElementById("sim-now").textContent = fmtMoney(0);
+      document.getElementById("sim-then").textContent = fmtMoney(0);
+      document.getElementById("sim-gain").textContent = fmtMoneySigned(0);
+      document.getElementById("sim-gain-monthly").textContent = fmtMoneyRawSigned(0);
+      document.getElementById("sim-gain-yearly").textContent = fmtMoneyRawSigned(0);
+      return;
+    }
+    var currentId = state.simLandId && state.lands.some(function(l){ return l.id === state.simLandId; })
+      ? state.simLandId : state.lands[0].id;
+    state.simLandId = currentId;
+    select.innerHTML = state.lands.map(function(l){
+      return '<option value="' + l.id + '"' + (l.id === currentId ? " selected" : "") + '>' + esc(l.label) + ' (' + TYPES[l.type].name + ', lvl ' + l.level + ')</option>';
+    }).join("");
+
+    var land = state.lands.find(function(l){ return l.id === currentId; });
+    var levelInput = document.getElementById("sim-level");
+    if (document.activeElement !== levelInput){
+      levelInput.value = Math.min(LEVEL_CAP, land.level + 1);
+    }
+    levelInput.min = land.level;
+    var simLevel = Math.max(land.level, Math.min(LEVEL_CAP, Number(levelInput.value) || land.level));
+    var now = land.income;
+    var then = incomeAtLevel(land, simLevel);
+    document.getElementById("sim-now").textContent = fmtMoney(now) + " " + periodLabel();
+    document.getElementById("sim-then").textContent = fmtMoney(then) + " " + periodLabel();
+    document.getElementById("sim-gain").textContent = fmtMoneySigned(then - now) + " " + periodLabel();
+    var monthlyGain = then - now;
+    document.getElementById("sim-gain-monthly").textContent = fmtMoneyRawSigned(monthlyGain) + " /mo";
+    document.getElementById("sim-gain-yearly").textContent = fmtMoneyRawSigned(monthlyGain * 12) + " /yr";
+  }
+
+  function renderBoost(){
+    document.getElementById("boost-mult").value = state.boost.multiplier;
+    document.getElementById("boost-hours").value = state.boost.hoursPerDay;
+    var base = totalMonthlyIncome(state.lands);
+    var full = boostedMonthly(base, state.boost.multiplier, 24);
+    var avg = boostedMonthly(base, state.boost.multiplier, state.boost.hoursPerDay);
+    document.getElementById("boost-none").textContent = fmtMoney(base) + " " + periodLabel();
+    document.getElementById("boost-avg").textContent = fmtMoney(avg) + " " + periodLabel();
+    document.getElementById("boost-full").textContent = fmtMoney(full) + " " + periodLabel();
+    document.getElementById("boost-earned").textContent =
+      "Boosting " + state.boost.hoursPerDay + " hr/day earns you " + fmtMoneySigned(avg - base) + " " + periodLabel() +
+      " extra over never boosting.";
+  }
+
+  function renderGoal(){
+    document.getElementById("goal-input").value = state.goal.monthly;
+    var base = totalMonthlyIncome(state.lands);
+    var boosted = boostedMonthly(base, state.boost.multiplier, state.boost.hoursPerDay);
+    var goal = Math.max(0, Number(state.goal.monthly) || 0);
+    var remUnboosted = Math.max(0, goal - base);
+    var remBoosted = Math.max(0, goal - boosted);
+    var maxPotential = boostedMonthly(totalMaxPotential(state.lands), state.boost.multiplier, state.boost.hoursPerDay);
+    document.getElementById("goal-remaining-unboosted").textContent = fmtMoney(remUnboosted) + " " + periodLabel();
+    document.getElementById("goal-remaining-boosted").textContent = fmtMoney(remBoosted) + " " + periodLabel();
+    document.getElementById("goal-max-potential").textContent = fmtMoney(maxPotential) + " " + periodLabel();
+
+    var verdict;
+    if (goal <= 0){
+      verdict = "Set a goal above to see how far your claims get you.";
+    } else if (boosted >= goal){
+      verdict = "You're already there — your boosted income clears this goal.";
+    } else if (maxPotential < goal){
+      verdict = "Even maxed out (all claims at level 100, fully boosted), your current claims fall short of this goal by " + fmtMoney(goal - maxPotential) + " " + periodLabel() + ". You'll need more land.";
+    } else {
+      var gainPool = state.lands.filter(function(l){ return l.level < LEVEL_CAP; })
+        .reduce(function(sum, l){ return sum + perLevelGain(l); }, 0);
+      var boostRatio = boosted > 0 && base > 0 ? boosted / base : 1;
+      var neededUnboostedGain = (goal / (boostRatio || 1)) - base;
+      var levelsNeeded = gainPool > 0 ? Math.ceil(neededUnboostedGain / gainPool) : null;
+      verdict = "Upgrading your claims can close the gap. " +
+        (levelsNeeded ? ("Roughly " + levelsNeeded + " more level" + (levelsNeeded === 1 ? "" : "s") + " spread across your claims (at today's rates) would get your boosted income to goal.") : "");
+    }
+    document.getElementById("goal-verdict").textContent = verdict;
+  }
+
+  // ---------- land-editing events ----------
+  function onLandsChanged(){
+    render();
+    scheduleSave();
+  }
+
+  function addLand(){
+    var n = state.lands.length + 1;
+    state.lands.push({ id: cryptoId(), label: "Claim " + n, type: "rock", level: 1, income: TYPES.rock.seed });
+    onLandsChanged();
+  }
+  document.getElementById("add-land-btn").addEventListener("click", addLand);
+  document.getElementById("add-land-btn-bottom").addEventListener("click", addLand);
+
+  document.getElementById("land-list").addEventListener("click", function(e){
+    var row = e.target.closest(".land-row");
+    if (!row) return;
+    var id = row.dataset.id;
+    var land = state.lands.find(function(l){ return l.id === id; });
+    if (!land) return;
+    if (e.target.classList.contains("remove-btn")){
+      state.lands = state.lands.filter(function(l){ return l.id !== id; });
+      onLandsChanged();
+    } else if (e.target.classList.contains("dup-btn")){
+      var idx = state.lands.findIndex(function(l){ return l.id === id; });
+      var copy = { id: cryptoId(), label: nextDuplicateLabel(land, state.lands), type: land.type, level: land.level, income: land.income };
+      state.lands.splice(idx + 1, 0, copy);
+      onLandsChanged();
+    } else if (e.target.classList.contains("lvl-up")){
+      land.level = Math.min(LEVEL_CAP, land.level + 1);
+      onLandsChanged();
+    } else if (e.target.classList.contains("lvl-down")){
+      land.level = Math.max(1, land.level - 1);
+      onLandsChanged();
+    }
+  });
+
+  document.getElementById("land-list").addEventListener("input", function(e){
+    var row = e.target.closest(".land-row");
+    if (!row) return;
+    var id = row.dataset.id;
+    var land = state.lands.find(function(l){ return l.id === id; });
+    if (!land) return;
+    if (e.target.classList.contains("f-label")) land.label = e.target.value;
+    else if (e.target.classList.contains("f-level")) land.level = Math.max(1, Math.min(LEVEL_CAP, Number(e.target.value) || 1));
+    else if (e.target.classList.contains("f-income")) land.income = Math.max(0, Number(e.target.value) || 0);
+    else return;
+    renderHero(); renderInsights(); renderSimulator(); renderBoost(); renderGoal();
+    var gainEl = row.querySelector(".gain-cell .num");
+    if (gainEl) gainEl.textContent = "+" + fmtMoney(perLevelGain(land));
+    scheduleSave();
+  });
+
+  document.getElementById("land-list").addEventListener("change", function(e){
+    if (!e.target.classList.contains("f-type")) return;
+    var row = e.target.closest(".land-row");
+    var land = state.lands.find(function(l){ return l.id === row.dataset.id; });
+    if (!land) return;
+    land.type = e.target.value;
+    onLandsChanged();
+  });
+
+  document.getElementById("sim-land").addEventListener("change", function(e){
+    state.simLandId = e.target.value;
+    renderSimulator();
+  });
+  document.getElementById("sim-level").addEventListener("input", renderSimulator);
+
+  document.getElementById("boost-mult").addEventListener("input", function(e){
+    state.boost.multiplier = Math.max(1, Number(e.target.value) || 1);
+    renderHero(); renderBoost(); renderGoal();
+    scheduleSave();
+  });
+  document.getElementById("boost-hours").addEventListener("input", function(e){
+    state.boost.hoursPerDay = Math.max(0, Math.min(24, Number(e.target.value) || 0));
+    renderHero(); renderBoost(); renderGoal();
+    scheduleSave();
+  });
+
+  document.getElementById("goal-input").addEventListener("input", function(e){
+    state.goal.monthly = Math.max(0, Number(e.target.value) || 0);
+    renderHero(); renderGoal();
+    scheduleSave();
+  });
+
+  document.getElementById("period-toggle").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-period]");
+    if (!btn) return;
+    state.display.period = btn.dataset.period;
+    render();
+    scheduleSave();
+  });
+
+  // ---------- auth ----------
+  var authMode = "signin";
+
+  document.querySelectorAll(".auth-tab").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      authMode = btn.dataset.mode;
+      document.querySelectorAll(".auth-tab").forEach(function(b){ b.classList.toggle("active", b === btn); });
+      document.getElementById("auth-submit").textContent = authMode === "signup" ? "Create account" : "Sign in";
+      document.getElementById("auth-password").setAttribute("autocomplete", authMode === "signup" ? "new-password" : "current-password");
+      hideAuthMessages();
+    });
+  });
+
+  function friendlyAuthError(err){
+    var code = err && err.code;
+    var map = {
+      "auth/invalid-email": "That email address doesn't look right.",
+      "auth/user-not-found": "No account found with that email.",
+      "auth/wrong-password": "Incorrect password.",
+      "auth/invalid-credential": "Incorrect email or password.",
+      "auth/email-already-in-use": "An account already exists with that email — try signing in instead.",
+      "auth/weak-password": "Password should be at least 6 characters.",
+      "auth/too-many-requests": "Too many attempts — please wait a bit and try again.",
+      "auth/network-request-failed": "Network error — check your connection.",
+      "auth/configuration-not-found": "Sign-in isn't set up yet for this site (Firebase config missing or Email/Password isn't enabled)."
+    };
+    return (code && map[code]) || (err && err.message) || "Something went wrong. Please try again.";
+  }
+  function showAuthError(msg){
+    var el = document.getElementById("auth-error");
+    el.textContent = msg; el.hidden = false;
+  }
+  function showAuthNotice(msg){
+    var el = document.getElementById("auth-notice");
+    el.textContent = msg; el.hidden = false;
+  }
+  function hideAuthMessages(){
+    document.getElementById("auth-error").hidden = true;
+    document.getElementById("auth-notice").hidden = true;
+  }
+
+  document.getElementById("auth-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    hideAuthMessages();
+    var email = document.getElementById("auth-email").value.trim();
+    var password = document.getElementById("auth-password").value;
+    var submitBtn = document.getElementById("auth-submit");
+    submitBtn.disabled = true;
+    var op = authMode === "signup"
+      ? auth.createUserWithEmailAndPassword(email, password).then(function(cred){
+          // Fire off the verification email right away; ignore failures here —
+          // the verify screen's "Resend" button covers that case.
+          return cred.user.sendEmailVerification().catch(function(){}).then(function(){ return cred; });
+        })
+      : auth.signInWithEmailAndPassword(email, password);
+    op.catch(function(err){
+      showAuthError(friendlyAuthError(err));
+    }).finally(function(){
+      submitBtn.disabled = false;
+    });
+  });
+
+  document.getElementById("auth-forgot").addEventListener("click", function(){
+    hideAuthMessages();
+    var email = document.getElementById("auth-email").value.trim();
+    if (!email){ showAuthError("Enter your email above first, then click Forgot password."); return; }
+    auth.sendPasswordResetEmail(email).then(function(){
+      showAuthNotice("Password reset email sent — check your inbox.");
+    }).catch(function(err){
+      showAuthError(friendlyAuthError(err));
+    });
+  });
+
+  document.getElementById("signout-btn").addEventListener("click", function(){
+    auth.signOut();
+  });
+
+  // ---------- email verification screen ----------
+  function showVerifyError(msg){
+    var el = document.getElementById("verify-error");
+    el.textContent = msg; el.hidden = false;
+  }
+  function showVerifyNotice(msg){
+    var el = document.getElementById("verify-notice");
+    el.textContent = msg; el.hidden = false;
+  }
+  function hideVerifyMessages(){
+    document.getElementById("verify-error").hidden = true;
+    document.getElementById("verify-notice").hidden = true;
+  }
+
+  document.getElementById("verify-resend").addEventListener("click", function(){
+    hideVerifyMessages();
+    var user = auth.currentUser;
+    if (!user) return;
+    user.sendEmailVerification().then(function(){
+      showVerifyNotice("Verification email sent — check your inbox (and spam folder).");
+    }).catch(function(err){
+      showVerifyError(friendlyAuthError(err));
+    });
+  });
+
+  document.getElementById("verify-continue").addEventListener("click", function(){
+    hideVerifyMessages();
+    var user = auth.currentUser;
+    if (!user) return;
+    var btn = document.getElementById("verify-continue");
+    btn.disabled = true;
+    user.reload().then(function(){
+      if (!user.emailVerified){
+        showVerifyError("Still not verified — click the link in the email first, then try again.");
+        return;
+      }
+      // Force a fresh ID token so Firestore's security rules (which also check
+      // email_verified) see the update immediately, instead of waiting for the
+      // token's normal hourly refresh.
+      return user.getIdToken(true).then(function(){
+        enterApp(user);
+      });
+    }).catch(function(err){
+      showVerifyError(friendlyAuthError(err));
+    }).finally(function(){
+      btn.disabled = false;
+    });
+  });
+
+  document.getElementById("verify-signout").addEventListener("click", function(){
+    auth.signOut();
+  });
+
+  // ---------- suggestion box ----------
+  document.getElementById("suggestion-text").addEventListener("input", function(e){
+    document.getElementById("suggestion-count").textContent = e.target.value.length + " / 2000";
+  });
+
+  document.getElementById("suggestion-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var statusEl2 = document.getElementById("suggestion-status");
+    if (!currentUser) return;
+    var textEl = document.getElementById("suggestion-text");
+    var text = textEl.value.trim();
+    if (!text){
+      statusEl2.textContent = "Write something first.";
+      return;
+    }
+    if (!window.emailjs || emailjsConfig.publicKey.indexOf("YOUR_") === 0){
+      statusEl2.textContent = "Suggestion box isn't set up yet on this site (EmailJS not configured).";
+      return;
+    }
+    var btn = document.getElementById("suggestion-submit");
+    btn.disabled = true;
+    statusEl2.textContent = "Sending…";
+    emailjs.send(emailjsConfig.serviceId, emailjsConfig.templateId, {
+      from_email: currentUser.email || "unknown",
+      message: text,
+      sent_at: new Date().toLocaleString()
+    }).then(function(){
+      textEl.value = "";
+      document.getElementById("suggestion-count").textContent = "0 / 2000";
+      statusEl2.textContent = "Thanks — sent!";
+    }).catch(function(err){
+      console.error(err);
+      statusEl2.textContent = "Couldn't send — try again in a moment.";
+    }).finally(function(){
+      btn.disabled = false;
+    });
+  });
+
+  // ---------- ad slot ----------
+  // Stays hidden and loads nothing from Google until adsenseConfig above has
+  // real values — so an unconfigured site shows no ad box and makes no
+  // outside request.
+  function initAds(){
+    var el = document.getElementById("ad-slot");
+    if (!el) return;
+    var clientReady = adsenseConfig.client && adsenseConfig.client.indexOf("XXXX") === -1;
+    var slotReady = adsenseConfig.slot && adsenseConfig.slot.indexOf("YOUR_") !== 0;
+    if (!clientReady || !slotReady) return;
+    var ins = el.querySelector("ins.adsbygoogle");
+    ins.setAttribute("data-ad-client", adsenseConfig.client);
+    ins.setAttribute("data-ad-slot", adsenseConfig.slot);
+    var script = document.createElement("script");
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(adsenseConfig.client);
+    script.onload = function(){
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        el.hidden = false;
+      } catch(e){ console.error("AdSense error", e); }
+    };
+    document.head.appendChild(script);
+  }
+
+  // ---------- boot ----------
+  statusEl = document.getElementById("save-status");
+  statusTextEl = document.getElementById("save-status-text");
+  initAds();
+
+  function showScreen(which){
+    document.getElementById("auth-screen").hidden = which !== "auth";
+    document.getElementById("verify-screen").hidden = which !== "verify";
+    document.getElementById("app-wrap").hidden = which !== "app";
+  }
+
+  function enterApp(user){
+    showScreen("app");
+    document.getElementById("user-email").textContent = user.email || "";
+    state = defaultState();
+    render();
+    setSaveStatus("saving", "Loading…");
+    subscribeUser(user.uid);
+  }
+
+  auth.onAuthStateChanged(function(user){
+    currentUser = user;
+    if (unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+    if (user && user.emailVerified){
+      enterApp(user);
+    } else if (user){
+      document.getElementById("verify-email").textContent = user.email || "";
+      hideVerifyMessages();
+      showScreen("verify");
+    } else {
+      showScreen("auth");
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

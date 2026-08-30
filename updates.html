@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Updates — TerraMine Ledger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap');
+  :root{
+    --bg: #eef0ea; --surface: #ffffff; --surface-2: #e3e6dd; --text: #201e19; --text-muted: #625d51;
+    --border: #d3d3c6; --accent: #a9682a;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg: #1b1916; --surface: #242220; --surface-2: #2f2c27; --text: #f1ece1; --text-muted: #a89e8c; --border: #3c372f; --accent: #dd9c4f; }
+  }
+  *{ box-sizing: border-box; }
+  body{
+    background: var(--bg); color: var(--text); font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0; padding: 32px 20px 80px; line-height: 1.6;
+  }
+  .wrap{ max-width: 680px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; }
+  h1{ font-family: 'Zilla Slab', Georgia, serif; font-size: 26px; margin: 0 0 6px; }
+  h2{ font-family: 'Zilla Slab', Georgia, serif; font-size: 16px; margin: 0; }
+  p, li{ font-size: 15px; color: var(--text); }
+  .updated{ color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+  a{ color: var(--accent); }
+
+  .site-nav{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px 20px; max-width:900px; margin:0 auto 24px; padding: 2px 20px; }
+  .site-nav-brand{ font-family:'Zilla Slab', Georgia, serif; font-weight:700; font-size:16px; color:var(--text); text-decoration:none; }
+  .site-nav-links{ display:flex; gap:18px; flex-wrap:wrap; }
+  .site-nav-links a{ font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; padding:4px 1px; border-bottom:2px solid transparent; }
+  .site-nav-links a:hover{ color:var(--text); }
+  .site-nav-links a.active{ color:var(--accent); border-bottom-color:var(--accent); }
+
+  .entry{ padding: 18px 0; border-bottom: 1px solid var(--border); }
+  .entry:last-of-type{ border-bottom: none; }
+  .entry-date{ font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-muted); }
+  .entry h2{ margin: 4px 0 6px; }
+  .entry p{ margin: 0; }
+  .empty{ color: var(--text-muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="site-nav-brand">TerraMine Ledger</a>
+  <div class="site-nav-links">
+    <a href="index.html">Ledger</a>
+    <a href="about.html">About</a>
+    <a href="advice.html">Newbie tips</a>
+    <a href="updates.html" class="active">Updates</a>
+    <a href="journey.html">My journey</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <h1>Updates</h1>
+  <div class="updated">Placeholder entry below, in the format new entries should follow — replace it and add real ones as the game (or this tool) changes.</div>
+
+  <div id="updates-list"></div>
+  <div id="updates-empty" class="empty" hidden>Nothing posted yet — check back soon.</div>
+</div>
+
+<script>
+  // Add a new update by adding an object to the TOP of this array — newest
+  // first. date is just a plain string ("2026-09-01" or "Sep 1, 2026" both
+  // work fine), title is short, body can be a sentence or two.
+  var updates = [
+    { date: "2026-08-30", title: "Lorem ipsum dolor sit amet", body: "Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua — replace this with your first real update." }
+  ];
+
+  var listEl = document.getElementById("updates-list");
+  var emptyEl = document.getElementById("updates-empty");
+  if (!updates.length){
+    emptyEl.hidden = false;
+  } else {
+    listEl.innerHTML = updates.map(function(u){
+      return (
+        '<div class="entry">' +
+          '<div class="entry-date">' + u.date + '</div>' +
+          '<h2>' + u.title + '</h2>' +
+          '<p>' + u.body + '</p>' +
+        '</div>'
+      );
+    }).join("");
+  }
+</script>
+</body>
+</html>

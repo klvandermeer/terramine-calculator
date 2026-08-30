@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Notice — TerraMine Ledger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap');
+  :root{
+    --bg: #eef0ea; --surface: #ffffff; --text: #201e19; --text-muted: #625d51;
+    --border: #d3d3c6; --accent: #a9682a;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg: #1b1916; --surface: #242220; --text: #f1ece1; --text-muted: #a89e8c; --border: #3c372f; --accent: #dd9c4f; }
+  }
+  *{ box-sizing: border-box; }
+  body{
+    background: var(--bg); color: var(--text); font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0; padding: 32px 20px 80px; line-height: 1.6;
+  }
+  .wrap{ max-width: 680px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; }
+  h1{ font-family: 'Zilla Slab', Georgia, serif; font-size: 26px; margin: 0 0 6px; }
+  h2{ font-family: 'Zilla Slab', Georgia, serif; font-size: 18px; margin: 28px 0 8px; }
+  p, li{ font-size: 15px; color: var(--text); }
+  .updated{ color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+  a{ color: var(--accent); }
+  .note{ font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 32px; padding-top: 16px; }
+
+  .site-nav{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px 20px; max-width:900px; margin:0 auto 24px; padding: 2px 20px; }
+  .site-nav-brand{ font-family:'Zilla Slab', Georgia, serif; font-weight:700; font-size:16px; color:var(--text); text-decoration:none; }
+  .site-nav-links{ display:flex; gap:18px; flex-wrap:wrap; }
+  .site-nav-links a{ font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; padding:4px 1px; border-bottom:2px solid transparent; }
+  .site-nav-links a:hover{ color:var(--text); }
+  .site-nav-links a.active{ color:var(--accent); border-bottom-color:var(--accent); }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="site-nav-brand">TerraMine Ledger</a>
+  <div class="site-nav-links">
+    <a href="index.html">Ledger</a>
+    <a href="about.html">About</a>
+    <a href="advice.html">Newbie tips</a>
+    <a href="updates.html">Updates</a>
+    <a href="journey.html">My journey</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <h1>Privacy Notice</h1>
+  <div class="updated">TerraMine Ledger is a small, independently run, unofficial fan tool for TerraMine players — not a company, and not affiliated with TerraMine's developer.</div>
+
+  <h2>What's collected</h2>
+  <p>When you create an account, we collect the email address and password you sign up with. Your password itself is never stored or seen by us — it's handled entirely by Firebase Authentication (a Google service), the same way most sites with "sign in" handle passwords.</p>
+  <p>Whatever you enter into the calculator — claim labels, levels, income figures, your boost settings, and your income goal — is stored under your account so it's there the next time you sign in.</p>
+
+  <h2>Who can see it</h2>
+  <p>Only you. Your claims and settings are stored in a database (Firestore) with rules that restrict each account to reading and writing only its own data — not even the site owner can see it through the app itself.</p>
+
+  <h2>The suggestion box</h2>
+  <p>If you use the suggestion box, your email address and message are sent directly to the site owner's inbox (via a service called EmailJS) — they aren't stored anywhere else or shared further.</p>
+
+  <h2>Ads and cookies</h2>
+  <p>This site may show ads served by Google AdSense. Google may use cookies to show ads based on your visits to this and other sites. You can see and adjust how Google personalizes ads for you at <a href="https://adssettings.google.com/" target="_blank" rel="noopener">Google Ads Settings</a>, and read Google's own policy at <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.</p>
+
+  <h2>Your choices</h2>
+  <p>To have your account and data deleted, email the site owner (below) and ask — there's currently no self-serve "delete my account" button in the app itself.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this notice, or a request to delete your data: <a href="mailto:kerri.l.vandermeer@gmail.com">kerri.l.vandermeer@gmail.com</a>.</p>
+
+  <div class="note">This is a plain-language description of a small hobby project, written to be genuinely accurate — not a substitute for formal legal advice. If this site ever grows well beyond a hobby scale, it'd be worth having a real privacy policy reviewed by a professional.</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About TerraMine — TerraMine Ledger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap');
+  :root{
+    --bg: #eef0ea; --surface: #ffffff; --surface-2: #e3e6dd; --text: #201e19; --text-muted: #625d51;
+    --border: #d3d3c6; --accent: #a9682a;
+    --rock: #7d7568; --coal: #47566e; --gold: #b3822f; --diamond: #2f9e91;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg: #1b1916; --surface: #242220; --surface-2: #2f2c27; --text: #f1ece1; --text-muted: #a89e8c;
+      --border: #3c372f; --accent: #dd9c4f;
+      --rock: #a49b8a; --coal: #8ba0c4; --gold: #e5bc6b; --diamond: #5fd0c3;
+    }
+  }
+  *{ box-sizing: border-box; }
+  body{
+    background: var(--bg); color: var(--text); font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0; padding: 32px 20px 80px; line-height: 1.6;
+  }
+  .wrap{ max-width: 680px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; }
+  h1{ font-family: 'Zilla Slab', Georgia, serif; font-size: 26px; margin: 0 0 6px; }
+  h2{ font-family: 'Zilla Slab', Georgia, serif; font-size: 18px; margin: 28px 0 8px; }
+  p, li{ font-size: 15px; color: var(--text); }
+  .updated{ color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+  a{ color: var(--accent); }
+  .note{ font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 32px; padding-top: 16px; }
+
+  .site-nav{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px 20px; max-width:900px; margin:0 auto 24px; padding: 2px 20px; }
+  .site-nav-brand{ font-family:'Zilla Slab', Georgia, serif; font-weight:700; font-size:16px; color:var(--text); text-decoration:none; }
+  .site-nav-links{ display:flex; gap:18px; flex-wrap:wrap; }
+  .site-nav-links a{ font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; padding:4px 1px; border-bottom:2px solid transparent; }
+  .site-nav-links a:hover{ color:var(--text); }
+  .site-nav-links a.active{ color:var(--accent); border-bottom-color:var(--accent); }
+
+  .type-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap:10px; margin: 12px 0 6px; }
+  .type-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+  .type-card .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .type-card .name{ font-weight:700; font-size:14px; }
+  .type-card .stat{ font-size:12px; color:var(--text-muted); margin-top:4px; }
+  .cta{ display:inline-block; margin-top: 6px; background: var(--accent); color: var(--surface); font-weight:600; font-size:14px; text-decoration:none; padding:9px 16px; border-radius:8px; }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="site-nav-brand">TerraMine Ledger</a>
+  <div class="site-nav-links">
+    <a href="index.html">Ledger</a>
+    <a href="about.html" class="active">About</a>
+    <a href="advice.html">Newbie tips</a>
+    <a href="updates.html">Updates</a>
+    <a href="journey.html">My journey</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <h1>About TerraMine</h1>
+  <div class="updated">Placeholder copy for now — replace with your own write-up whenever you're ready.</div>
+
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+
+  <h2>The four claim types</h2>
+  <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.</p>
+  <div class="type-grid">
+    <div class="type-card"><span class="dot" style="background:var(--rock)"></span><span class="name">Rock</span><div class="stat">Lorem ipsum</div></div>
+    <div class="type-card"><span class="dot" style="background:var(--coal)"></span><span class="name">Coal</span><div class="stat">Lorem ipsum</div></div>
+    <div class="type-card"><span class="dot" style="background:var(--gold)"></span><span class="name">Gold</span><div class="stat">Lorem ipsum</div></div>
+    <div class="type-card"><span class="dot" style="background:var(--diamond)"></span><span class="name">Diamond</span><div class="stat">Lorem ipsum</div></div>
+  </div>
+  <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
+
+  <h2>Leveling up a claim</h2>
+  <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. See the <a href="advice.html">newbie tips</a> page.</p>
+
+  <h2>Boosting</h2>
+  <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam. The <a href="index.html">ledger's boost calculator</a> can help once this section has real numbers in it.</p>
+
+  <h2>Where to play</h2>
+  <p>Lorem ipsum dolor sit amet — link to the App Store listing goes here.</p>
+
+  <a class="cta" href="index.html">Go to the Ledger →</a>
+
+  <div class="note">This page is placeholder text and needs to be replaced with a real write-up. See the <a href="updates.html">Updates</a> page for anything that's changed since this was written.</div>
+</div>
+</body>
+</html>
