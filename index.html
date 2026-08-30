@@ -154,7 +154,7 @@
   .land-list{ display: flex; flex-direction: column; gap: 10px; }
   .land-row{
     display: grid;
-    grid-template-columns: 3px 1.3fr .9fr .8fr 1.1fr auto auto;
+    grid-template-columns: 3px 1.15fr .8fr .65fr .55fr .95fr auto auto;
     gap: 12px;
     align-items: center;
     padding: 12px 14px;
@@ -169,12 +169,14 @@
     border: 1px solid var(--border); background: var(--surface); color: var(--text);
   }
   .field input.num-input{ font-family: 'IBM Plex Mono', monospace; }
+  .field .subnote{ font-size: 11px; color: var(--text-muted); margin-top: 3px; }
   .level-stepper{ display:flex; align-items:center; gap: 4px; }
   .level-stepper input{ text-align:center; }
   .level-stepper button{ width: 26px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor:pointer; font-weight:700; color: var(--text); }
   .gain-cell{ text-align: right; font-size: 13px; }
   .gain-cell .num{ font-weight: 600; color: var(--good); font-size: 14px; }
   .gain-cell .stat-label{ font-size: 10px; }
+  .gain-cell .subnote{ font-size: 11px; color: var(--text-muted); margin-top: 2px; }
   .row-actions{ display:flex; align-items:center; gap: 2px; }
   .remove-btn, .dup-btn{ background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 6px; }
   .remove-btn:hover{ color: var(--warn); background: var(--warn-bg); }
@@ -346,7 +348,7 @@
     <div class="section-head">
       <div>
         <h2>Your claims</h2>
-        <div class="section-note">One row per plot of land you own. Enter the level and current monthly income exactly as the game shows it.</div>
+        <div class="section-note">One row per plot of land you own. Enter the level and current monthly income exactly as the game shows it. Own a lot of identical claims? Use <strong>Count</strong> instead of adding a row for each one — a Rock claim at level 5 with Count 500 stands in for 500 of them.</div>
       </div>
       <button class="btn primary" id="add-land-btn">+ Add claim</button>
     </div>
@@ -356,6 +358,7 @@
     <details class="help" style="margin-top:14px;">
       <summary>Where do these numbers come from?</summary>
       <p>Rock, Coal, Gold and Diamond claims earn a base monthly rent, and every level above 1 adds a flat +1% of that base (capped at level 100, which is 1.99× base). Enter the monthly income your claim is <em>actually</em> earning right now — the calculator works backward from that to figure out the per-level value, so it stays accurate even if your claim's base rent isn't exactly a community average. New claims are pre-filled with rough community-sourced starting rents you should overwrite once you see your own numbers.</p>
+      <p>The <strong>+ / − buttons</strong> next to Level are for "I just upgraded this in-game" — they raise the level and project the new income for you, using the base rate figured out above. If you're instead correcting a claim's level and income to match what the game shows right now (not stepping it up one at a time), type both fields directly — typing a level doesn't touch income, so you stay in control of both.</p>
     </details>
   </section>
 
@@ -363,7 +366,7 @@
     <div class="section-head">
       <div>
         <h2>Best next upgrade</h2>
-        <div class="section-note">Ranked by how much monthly income one more level adds — right now, a level always adds the same $ amount to a given claim, so upgrading the same claim repeatedly stacks evenly.</div>
+        <div class="section-note">Ranked by how much monthly income one more level adds — right now, a level always adds the same $ amount to a given claim, so upgrading the same claim repeatedly stacks evenly. Rows with a Count above 1 rank by their whole group's gain, since that's the real payoff of upgrading all of them by a level.</div>
       </div>
     </div>
     <div class="insight-list" id="insight-list"></div>
@@ -433,6 +436,10 @@
         <div class="compare-tile">
           <div class="stat-label">Full-time boosted</div>
           <div class="stat-value num" id="boost-full">$0.00</div>
+        </div>
+        <div class="compare-tile">
+          <div class="stat-label">Per boost (30 min)</div>
+          <div class="stat-value num" id="boost-per-boost">$0.00</div>
         </div>
       </div>
       <div class="section-note" id="boost-earned" style="margin-top:12px;">&nbsp;</div>
@@ -557,7 +564,7 @@
   function defaultState(){
     return {
       lands: [
-        { id: cryptoId(), label: "Claim 1", type: "rock", level: 1, income: TYPES.rock.seed }
+        { id: cryptoId(), label: "Claim 1", type: "rock", level: 1, income: TYPES.rock.seed, count: 1 }
       ],
       boost: { multiplier: 20, hoursPerDay: 4 },
       goal: { monthly: 1 },
@@ -610,11 +617,20 @@
   function perLevelGain(land){
     return baseRateFor(land) * 0.01;
   }
+  // A row's "income" and level describe ONE claim; count says how many identical
+  // claims that row stands in for. These two helpers give the whole group's total,
+  // used anywhere real money (not a single claim's rate) is what matters.
+  function groupIncome(land){
+    return (Number(land.income) || 0) * (Number(land.count) || 1);
+  }
+  function groupGainPerLevel(land){
+    return perLevelGain(land) * (Number(land.count) || 1);
+  }
   function totalMonthlyIncome(lands){
-    return lands.reduce(function(sum, l){ return sum + (Number(l.income) || 0); }, 0);
+    return lands.reduce(function(sum, l){ return sum + groupIncome(l); }, 0);
   }
   function totalMaxPotential(lands){
-    return lands.reduce(function(sum, l){ return sum + incomeAtLevel(l, LEVEL_CAP); }, 0);
+    return lands.reduce(function(sum, l){ return sum + incomeAtLevel(l, LEVEL_CAP) * (Number(l.count) || 1); }, 0);
   }
   function boostedMonthly(monthlyBase, multiplier, hoursPerDay){
     var frac = Math.max(0, Math.min(24, Number(hoursPerDay) || 0)) / 24;
@@ -657,7 +673,8 @@
           label: l.label || "Claim",
           type: TYPES[l.type] ? l.type : "rock",
           level: Math.max(1, Math.min(LEVEL_CAP, Number(l.level) || 1)),
-          income: Number(l.income) || 0
+          income: Number(l.income) || 0,
+          count: Math.max(1, Math.round(Number(l.count) || 1))
         };
       });
     }
@@ -764,7 +781,8 @@
     }
     list.innerHTML = state.lands.map(function(land){
       var t = TYPES[land.type];
-      var gain = perLevelGain(land);
+      var count = Number(land.count) || 1;
+      var groupGain = groupGainPerLevel(land);
       return (
         '<div class="land-row" data-id="' + land.id + '">' +
           '<div class="type-bar" style="background:' + t.color + '"></div>' +
@@ -789,12 +807,18 @@
             '</div>' +
           '</div>' +
           '<div class="field">' +
-            '<label>Monthly income ($)</label>' +
+            '<label>Count</label>' +
+            '<input type="number" class="f-count num-input" min="1" step="1" value="' + count + '">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Income / claim ($)</label>' +
             '<input type="number" class="f-income num-input" step="0.000001" min="0" value="' + land.income + '">' +
+            (count > 1 ? '<div class="subnote">= ' + fmtMoneyRaw(groupIncome(land)) + '/mo total</div>' : '') +
           '</div>' +
           '<div class="gain-cell">' +
-            '<div class="stat-label">Next level</div>' +
-            '<div class="num">+' + fmtMoney(gain) + '</div>' +
+            '<div class="stat-label">Next level' + (count > 1 ? ' (×' + count + ')' : '') + '</div>' +
+            '<div class="num">+' + fmtMoney(groupGain) + '</div>' +
+            (count > 1 ? '<div class="subnote">+' + fmtMoney(perLevelGain(land)) + ' per claim</div>' : '') +
           '</div>' +
           '<div class="row-actions">' +
             '<button type="button" class="dup-btn" aria-label="Duplicate claim" title="Duplicate claim">⧉</button>' +
@@ -812,7 +836,7 @@
       return;
     }
     var ranked = state.lands.slice().filter(function(l){ return l.level < LEVEL_CAP; })
-      .map(function(l){ return { land: l, gain: perLevelGain(l) }; })
+      .map(function(l){ return { land: l, gain: groupGainPerLevel(l) }; })
       .sort(function(a,b){ return b.gain - a.gain; })
       .slice(0, 5);
     if (!ranked.length){
@@ -821,11 +845,13 @@
     }
     el.innerHTML = ranked.map(function(r, i){
       var t = TYPES[r.land.type];
+      var count = Number(r.land.count) || 1;
+      var countTag = count > 1 ? ' <span style="color:var(--text-muted); font-weight:400;">×' + count + '</span>' : '';
       return (
         '<div class="insight-row">' +
           '<span class="rank">#' + (i+1) + '</span>' +
           '<span class="dot" style="background:' + t.color + '"></span>' +
-          '<span class="name">' + esc(r.land.label) + ' <span style="color:var(--text-muted); font-weight:400;">(' + t.name + ', lvl ' + r.land.level + ')</span></span>' +
+          '<span class="name">' + esc(r.land.label) + countTag + ' <span style="color:var(--text-muted); font-weight:400;">(' + t.name + ', lvl ' + r.land.level + ')</span></span>' +
           '<span class="gain">+' + fmtMoney(r.gain) + ' ' + periodLabel() + ' per level</span>' +
         '</div>'
       );
@@ -847,18 +873,20 @@
       ? state.simLandId : state.lands[0].id;
     state.simLandId = currentId;
     select.innerHTML = state.lands.map(function(l){
-      return '<option value="' + l.id + '"' + (l.id === currentId ? " selected" : "") + '>' + esc(l.label) + ' (' + TYPES[l.type].name + ', lvl ' + l.level + ')</option>';
+      var countTag = (Number(l.count) || 1) > 1 ? ' ×' + l.count : '';
+      return '<option value="' + l.id + '"' + (l.id === currentId ? " selected" : "") + '>' + esc(l.label) + countTag + ' (' + TYPES[l.type].name + ', lvl ' + l.level + ')</option>';
     }).join("");
 
     var land = state.lands.find(function(l){ return l.id === currentId; });
+    var count = Number(land.count) || 1;
     var levelInput = document.getElementById("sim-level");
     if (document.activeElement !== levelInput){
       levelInput.value = Math.min(LEVEL_CAP, land.level + 1);
     }
     levelInput.min = land.level;
     var simLevel = Math.max(land.level, Math.min(LEVEL_CAP, Number(levelInput.value) || land.level));
-    var now = land.income;
-    var then = incomeAtLevel(land, simLevel);
+    var now = land.income * count;
+    var then = incomeAtLevel(land, simLevel) * count;
     document.getElementById("sim-now").textContent = fmtMoney(now) + " " + periodLabel();
     document.getElementById("sim-then").textContent = fmtMoney(then) + " " + periodLabel();
     document.getElementById("sim-gain").textContent = fmtMoneySigned(then - now) + " " + periodLabel();
@@ -873,12 +901,18 @@
     var base = totalMonthlyIncome(state.lands);
     var full = boostedMonthly(base, state.boost.multiplier, 24);
     var avg = boostedMonthly(base, state.boost.multiplier, state.boost.hoursPerDay);
+    // A single free boost lasts 30 minutes. The extra it earns is the hourly
+    // income rate, times (multiplier - 1) for the boosted portion, times 0.5 hr.
+    var mult = Math.max(1, Number(state.boost.multiplier) || 1);
+    var hourlyBase = base / (30 * 24);
+    var perBoost = hourlyBase * (mult - 1) * 0.5;
     document.getElementById("boost-none").textContent = fmtMoney(base) + " " + periodLabel();
     document.getElementById("boost-avg").textContent = fmtMoney(avg) + " " + periodLabel();
     document.getElementById("boost-full").textContent = fmtMoney(full) + " " + periodLabel();
+    document.getElementById("boost-per-boost").textContent = fmtMoneyRaw(perBoost);
     document.getElementById("boost-earned").textContent =
       "Boosting " + state.boost.hoursPerDay + " hr/day earns you " + fmtMoneySigned(avg - base) + " " + periodLabel() +
-      " extra over never boosting.";
+      " extra over never boosting. Each individual 30-minute free boost adds about " + fmtMoneyRaw(perBoost) + " on its own.";
   }
 
   function renderGoal(){
@@ -902,7 +936,7 @@
       verdict = "Even maxed out (all claims at level 100, fully boosted), your current claims fall short of this goal by " + fmtMoney(goal - maxPotential) + " " + periodLabel() + ". You'll need more land.";
     } else {
       var gainPool = state.lands.filter(function(l){ return l.level < LEVEL_CAP; })
-        .reduce(function(sum, l){ return sum + perLevelGain(l); }, 0);
+        .reduce(function(sum, l){ return sum + groupGainPerLevel(l); }, 0);
       var boostRatio = boosted > 0 && base > 0 ? boosted / base : 1;
       var neededUnboostedGain = (goal / (boostRatio || 1)) - base;
       var levelsNeeded = gainPool > 0 ? Math.ceil(neededUnboostedGain / gainPool) : null;
@@ -920,7 +954,7 @@
 
   function addLand(){
     var n = state.lands.length + 1;
-    state.lands.push({ id: cryptoId(), label: "Claim " + n, type: "rock", level: 1, income: TYPES.rock.seed });
+    state.lands.push({ id: cryptoId(), label: "Claim " + n, type: "rock", level: 1, income: TYPES.rock.seed, count: 1 });
     onLandsChanged();
   }
   document.getElementById("add-land-btn").addEventListener("click", addLand);
@@ -937,17 +971,50 @@
       onLandsChanged();
     } else if (e.target.classList.contains("dup-btn")){
       var idx = state.lands.findIndex(function(l){ return l.id === id; });
-      var copy = { id: cryptoId(), label: nextDuplicateLabel(land, state.lands), type: land.type, level: land.level, income: land.income };
+      var copy = { id: cryptoId(), label: nextDuplicateLabel(land, state.lands), type: land.type, level: land.level, income: land.income, count: land.count };
       state.lands.splice(idx + 1, 0, copy);
       onLandsChanged();
     } else if (e.target.classList.contains("lvl-up")){
-      land.level = Math.min(LEVEL_CAP, land.level + 1);
+      var upLevel = Math.min(LEVEL_CAP, land.level + 1);
+      land.income = incomeAtLevel(land, upLevel); // preserve the claim's base rate, project income at the new level
+      land.level = upLevel;
       onLandsChanged();
     } else if (e.target.classList.contains("lvl-down")){
-      land.level = Math.max(1, land.level - 1);
+      var downLevel = Math.max(1, land.level - 1);
+      land.income = incomeAtLevel(land, downLevel);
+      land.level = downLevel;
       onLandsChanged();
     }
   });
+
+  // Patches just the dynamic bits of one row (income subnote, gain-cell) in
+  // place, without rebuilding the row's HTML — keeps focus/cursor position
+  // in whichever field the person is still typing in.
+  function updateRowDynamic(row, land){
+    var count = Number(land.count) || 1;
+
+    var incomeField = row.querySelector(".f-income").closest(".field");
+    var incomeSub = incomeField.querySelector(".subnote");
+    if (count > 1){
+      var incomeText = "= " + fmtMoneyRaw(groupIncome(land)) + "/mo total";
+      if (incomeSub) incomeSub.textContent = incomeText;
+      else incomeField.insertAdjacentHTML("beforeend", '<div class="subnote">' + incomeText + '</div>');
+    } else if (incomeSub){
+      incomeSub.remove();
+    }
+
+    var gainCell = row.querySelector(".gain-cell");
+    gainCell.querySelector(".stat-label").textContent = "Next level" + (count > 1 ? " (×" + count + ")" : "");
+    gainCell.querySelector(".num").textContent = "+" + fmtMoney(groupGainPerLevel(land));
+    var gainSub = gainCell.querySelector(".subnote");
+    if (count > 1){
+      var gainText = "+" + fmtMoney(perLevelGain(land)) + " per claim";
+      if (gainSub) gainSub.textContent = gainText;
+      else gainCell.insertAdjacentHTML("beforeend", '<div class="subnote">' + gainText + '</div>');
+    } else if (gainSub){
+      gainSub.remove();
+    }
+  }
 
   document.getElementById("land-list").addEventListener("input", function(e){
     var row = e.target.closest(".land-row");
@@ -957,11 +1024,11 @@
     if (!land) return;
     if (e.target.classList.contains("f-label")) land.label = e.target.value;
     else if (e.target.classList.contains("f-level")) land.level = Math.max(1, Math.min(LEVEL_CAP, Number(e.target.value) || 1));
+    else if (e.target.classList.contains("f-count")) land.count = Math.max(1, Math.round(Number(e.target.value) || 1));
     else if (e.target.classList.contains("f-income")) land.income = Math.max(0, Number(e.target.value) || 0);
     else return;
     renderHero(); renderInsights(); renderSimulator(); renderBoost(); renderGoal();
-    var gainEl = row.querySelector(".gain-cell .num");
-    if (gainEl) gainEl.textContent = "+" + fmtMoney(perLevelGain(land));
+    updateRowDynamic(row, land);
     scheduleSave();
   });
 
