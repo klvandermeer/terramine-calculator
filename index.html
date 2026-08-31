@@ -563,7 +563,7 @@
     gold:    { name: "Gold",    color: "var(--gold)",    seed: 0.00507  },
     diamond: { name: "Diamond", color: "var(--diamond)", seed: 0.011405 }
   };
-  var TYPE_ORDER = ["rock","coal","gold","diamond"];
+  var TYPE_ORDER = ["diamond","gold","coal","rock"];
   var LEVEL_CAP = 100;
 
   function defaultState(){
@@ -1082,7 +1082,16 @@
     var row = e.target.closest(".land-row");
     var land = state.lands.find(function(l){ return l.id === row.dataset.id; });
     if (!land) return;
-    land.type = e.target.value;
+    var newType = e.target.value;
+    if (newType !== land.type){
+      // The old income was that of the PREVIOUS type's base rate — carrying it
+      // over under a new type would silently misrepresent that type's earnings.
+      // Reset to the new type's community-seed rate at the claim's current
+      // level, same as a brand-new claim gets, so it's an obvious placeholder
+      // to overwrite with the real number rather than a wrong one in disguise.
+      land.income = TYPES[newType].seed * levelMultiplier(land.level);
+    }
+    land.type = newType;
     onLandsChanged();
   });
 
